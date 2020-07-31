@@ -1,6 +1,7 @@
 package com.group.kaka.stream.config;
 
 import com.group.kaka.stream.domain.Count;
+import com.group.kaka.stream.partitioner.CountRepartitioner;
 import com.group.kaka.stream.transformer.CountTransformer;
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.streams.KeyValue;
@@ -8,6 +9,7 @@ import org.apache.kafka.streams.StreamsBuilder;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.kstream.KStream;
+import org.apache.kafka.streams.kstream.Produced;
 import org.apache.kafka.streams.state.KeyValueBytesStoreSupplier;
 import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
@@ -46,6 +48,8 @@ public class SteamConfiguration {
     public KStream<String, Count> kStream(StreamsBuilder kStreamBuilder) {
         KStream<String, String> stream = kStreamBuilder.stream("WORD_TOPIC");
 
+        KStream<String, String> streamKeyValue = stream.through("INTERMEDIATE_TOPIC" ,
+        Produced.with(Serdes.String() , Serdes.String() , new CountRepartitioner()) );
 
         StoreBuilder<KeyValueStore<String, Long>> wordCountsStore =
                 Stores.keyValueStoreBuilder(
@@ -56,7 +60,7 @@ public class SteamConfiguration {
 
         kStreamBuilder.addStateStore(wordCountsStore);
 
-        KStream<String, String> word = stream.flatMapValues((v) ->
+        KStream<String, String> word = streamKeyValue.flatMapValues((v) ->
                 Arrays.asList(v.split(" ")));
 
         KStream<String, Count> c = word.transformValues(() -> new CountTransformer("count-store")

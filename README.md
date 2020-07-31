@@ -20,6 +20,10 @@ kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 2 --pa
 
 kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 2 --partitions 2 --topic COUNT_STORE --config min.insync.replicas=2
 
+kafka-topics.bat --create --zookeeper localhost:2181 --replication-factor 2 --partitions 2 --topic INTERMEDIATE_TOPIC --config min.insync.replicas=2
+
+
+
 ````
 
 # start zookeeper
@@ -45,6 +49,11 @@ kafka-console-producer.bat --broker-list localhost:9092 --topic WORD_TOPIC
 # List the Topic
 ````
 kafka-topics.bat --list --bootstrap-server localhost:9092
+
+COUNT_STORE
+WORD_TOPIC
+__consumer_offsets
+word-count-count-store-changelog
 ````
 
 # inMemory State store Change log topic
@@ -56,3 +65,8 @@ the fault tolerance
 
 word-count-count-store-changelog
 ````
+
+# Repartition & through
+
+Implemented repartition interface to downstream similar word same topic.
+by using through method the intermediate topic is created and repartitioned
